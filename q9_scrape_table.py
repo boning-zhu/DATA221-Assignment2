@@ -10,10 +10,17 @@ import pandas as pd
 
 def main():
     url = "https://en.wikipedia.org/wiki/Machine_learning"
-    response = requests.get(url)
+
+    headers = {"User-Agent": "Mozilla/5.0"}
+
+    response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
 
     content = soup.find("div", class_="mw-parser-output")
+
+    if content is None:
+        print("Failed to find main content.")
+        return
 
     tables = content.find_all("table")
 
@@ -21,28 +28,36 @@ def main():
 
     for table in tables:
         rows = table.find_all("tr")
-        if len(rows) >= 4:
+        if len(rows) >= 4:   # at least 3 data rows
             selected_table = table
             break
 
+    if selected_table is None:
+        print("No suitable table found.")
+        return
+
     rows = selected_table.find_all("tr")
 
-    headers = [th.get_text(strip=True) for th in rows[0].find_all("th")]
-
-    if not headers:
-        headers = [f"col{i+1}" for i in range(len(rows[1].find_all("td")))]
-
     data = []
+    max_cols = 0
 
-    for row in rows[1:]:
+    # Extract all rows first
+    for row in rows:
         cols = [cell.get_text(strip=True) for cell in row.find_all(["td", "th"])]
+        if cols:
+            data.append(cols)
+            max_cols = max(max_cols, len(cols))
 
-        while len(cols) < len(headers):
-            cols.append("")
+    # Pad rows to same length
+    for row in data:
+        while len(row) < max_cols:
+            row.append("")
 
-        data.append(cols)
+    # Create generic column names if needed
+    column_names = [f"col{i+1}" for i in range(max_cols)]
 
-    df = pd.DataFrame(data, columns=headers)
+    df = pd.DataFrame(data, columns=column_names)
+
     df.to_csv("wiki_table.csv", index=False)
 
     print("Table saved to wiki_table.csv")

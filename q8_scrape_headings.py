@@ -9,10 +9,19 @@ from bs4 import BeautifulSoup
 
 def main():
     url = "https://en.wikipedia.org/wiki/Data_science"
-    response = requests.get(url)
+
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
+
+    response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
 
     content = soup.find("div", class_="mw-parser-output")
+
+    if content is None:
+        print("Failed to find main content.")
+        return
 
     headings = []
 
