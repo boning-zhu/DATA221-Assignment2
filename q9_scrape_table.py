@@ -13,7 +13,8 @@ def main():
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "html.parser")
 
-    content = soup.find("div", id="mw-content-text")
+    content = soup.find("div", class_="mw-parser-output")
+
     tables = content.find_all("table")
 
     selected_table = None

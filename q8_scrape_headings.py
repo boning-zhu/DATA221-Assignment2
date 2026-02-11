@@ -12,7 +12,8 @@ def main():
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "html.parser")
 
-    content = soup.find("div", id="mw-content-text")
+    content = soup.find("div", class_="mw-parser-output")
+
     headings = []
 
     for h2 in content.find_all("h2"):
